@@ -1,0 +1,6 @@
+{
+  "name": "Finanza - Financial Management & Ledger",
+  "description": "Comprehensive personal finance and budget organization app with user profiles, category budgets, daily transaction ledger, and a hidden retro mini-game.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

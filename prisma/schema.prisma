@@ -1,0 +1,105 @@
+// Finanza Database Schema for Prisma ORM & MySQL
+// Layered Architecture: Database / Schema Layer
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PaymentType {
+  card
+  cash
+  pix
+  transfer
+  other
+}
+
+enum MedalType {
+  bronze
+  silver
+  gold
+  platinum
+}
+
+model UserProfile {
+  id               String        @id @default(uuid())
+  email            String?       @unique
+  username         String        @unique
+  fullName         String
+  avatar           String?       @db.MediumText
+  passwordHash     String
+  currency         String        @default("BRL")
+  mainIncomeTarget Decimal       @default(0.00) @db.Decimal(10, 2)
+  carryoverBalance Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  categories       Category[]
+  transactions     Transaction[]
+  gameScores       GameScore[]
+
+  @@map("user_profiles")
+}
+
+model Category {
+  id           String        @id @default(uuid())
+  profileId    String
+  name         String
+  icon         String        @default("tag")
+  color        String        @default("#10b981")
+  budgetLimit  Decimal       @default(0.00) @db.Decimal(10, 2)
+  isIncome     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  profile      UserProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([profileId])
+  @@map("categories")
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  profileId   String
+  categoryId  String
+  type        TransactionType @default(EXPENSE)
+  amount      Decimal         @db.Decimal(10, 2)
+  date        DateTime
+  description String          @db.VarChar(255)
+  paymentType PaymentType     @default(card)
+  notes       String?         @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  profile     UserProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  category    Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([categoryId])
+  @@index([date])
+  @@map("transactions")
+}
+
+model GameScore {
+  id          String      @id @default(uuid())
+  profileId   String
+  score       Int         @default(0)
+  medal       MedalType?
+  pipesPassed Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("game_scores")
+}
